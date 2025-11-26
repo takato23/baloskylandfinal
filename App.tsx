@@ -13,7 +13,7 @@ import { ExposureController } from './components/ExposureController';
 import { PerformanceLogger } from './components/PerformanceLogger';
 import { RemotePlayersV2, PlayerSyncV2 } from './components/multiplayer';
 import { EventManager } from './components/events';
-import { QUALITY_PRESETS, defaultQuality } from './utils/performance';
+import { QUALITY_PRESETS, defaultQuality, QualityLevel } from './utils/performance';
 import { useIsMobile } from './hooks/useIsMobile';
 
 export default function App() {
@@ -37,7 +37,7 @@ export default function App() {
 
   // Auto-pick a sensible default on mount (keeps user overrides intact)
   useEffect(() => {
-    if (!qualityLevel) setQualityLevel(defaultQuality());
+    if (!qualityLevel) setQualityLevel(defaultQuality() as QualityLevel);
   }, [qualityLevel, setQualityLevel]);
 
   return (
@@ -74,7 +74,13 @@ export default function App() {
         >
           <Suspense fallback={null}>
             {/* Physics World - Increased gravity for snappier fall */}
-            <Physics gravity={[0, -40, 0]} timeStep={quality.physicsTimestep} maxSubsteps={quality.physicsMaxSubsteps}>
+            {/* Key forces remount when quality changes to avoid Rapier WASM aliasing errors */}
+            <Physics
+              key={`physics-${quality.physicsTimestep}`}
+              gravity={[0, -40, 0]}
+              timeStep={quality.physicsTimestep}
+              maxCcdSubsteps={quality.physicsMaxSubsteps}
+            >
               <Lights />
               <ExposureController />
               <World />

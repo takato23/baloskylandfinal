@@ -159,8 +159,8 @@ interface GameState {
   setReduceMotion: (enabled: boolean) => void;
 
   // --- Quality Preset ---
-  qualityLevel: 'low' | 'medium' | 'high';
-  setQualityLevel: (level: 'low' | 'medium' | 'high') => void;
+  qualityLevel: 'mobile' | 'low' | 'medium' | 'high';
+  setQualityLevel: (level: 'mobile' | 'low' | 'medium' | 'high') => void;
 }
 
 // ============================================

@@ -214,34 +214,50 @@ export const GeminiLiveManager: React.FC = () => {
 
     setLiveConnectionState('connecting');
 
-    // Connect to Gemini Live
-    const connect = async () => {
-      try {
-        const session = await ai.live.connect({
-          model: CONFIG.MODEL_ID,
-          config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: { voiceName: liveSession.npc!.voiceName },
-              },
-            },
-            systemInstruction: liveSession.npc!.systemInstruction,
-            inputAudioTranscription: {},
-            outputAudioTranscription: {},
-          },
-        });
+    // Handle incoming messages from Gemini Live
+    const handleMessage = (message: LiveServerMessage) => {
+      if (isCleaningUpRef.current) return;
 
-        if (isCleaningUpRef.current) {
-          session.close();
-          return;
+      // Handle audio
+      const audioData = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+      if (audioData && outputContextRef.current && audioQueueRef.current) {
+        const bytes = decodeBase64(audioData);
+        const int16 = new Int16Array(bytes.buffer);
+        const float32 = pcm16ToFloat32(int16);
+
+        const buffer = outputContextRef.current.createBuffer(
+          1,
+          float32.length,
+          CONFIG.OUTPUT_SAMPLE_RATE
+        );
+        buffer.copyToChannel(float32, 0);
+        audioQueueRef.current.enqueue(buffer);
+      }
+
+      // Handle transcriptions
+      if (message.serverContent?.inputTranscription?.text) {
+        inputTranscript.current += message.serverContent.inputTranscription.text;
+      }
+      if (message.serverContent?.outputTranscription?.text) {
+        outputTranscript.current += message.serverContent.outputTranscription.text;
+      }
+
+      // On turn complete, add messages to chat
+      if (message.serverContent?.turnComplete) {
+        if (inputTranscript.current.trim()) {
+          addChatMessage('user', inputTranscript.current.trim());
+          inputTranscript.current = '';
         }
+        if (outputTranscript.current.trim()) {
+          addChatMessage('npc', outputTranscript.current.trim());
+          outputTranscript.current = '';
+        }
+      }
+    };
 
-        sessionRef.current = session;
-        console.log('[GeminiLive] Connected');
-        setLiveConnectionState('connected');
-
-        // Setup microphone
+    // Setup microphone after connection
+    const setupMicrophone = async (session: any) => {
+      try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: true,
@@ -300,54 +316,59 @@ export const GeminiLiveManager: React.FC = () => {
           turns: [{ role: 'user', parts: [{ text: '¡Hola!' }] }],
           turnComplete: true,
         });
-
-        // Handle incoming messages
-        for await (const message of session) {
-          if (isCleaningUpRef.current) break;
-
-          const msg = message as LiveServerMessage;
-
-          // Handle audio
-          const audioData = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-          if (audioData && outputContextRef.current && audioQueueRef.current) {
-            const bytes = decodeBase64(audioData);
-            const int16 = new Int16Array(bytes.buffer);
-            const float32 = pcm16ToFloat32(int16);
-
-            const buffer = outputContextRef.current.createBuffer(
-              1,
-              float32.length,
-              CONFIG.OUTPUT_SAMPLE_RATE
-            );
-            buffer.copyToChannel(float32, 0);
-            audioQueueRef.current.enqueue(buffer);
-          }
-
-          // Handle transcriptions
-          if (msg.serverContent?.inputTranscription?.text) {
-            inputTranscript.current += msg.serverContent.inputTranscription.text;
-          }
-          if (msg.serverContent?.outputTranscription?.text) {
-            outputTranscript.current += msg.serverContent.outputTranscription.text;
-          }
-
-          // On turn complete, add messages to chat
-          if (msg.serverContent?.turnComplete) {
-            if (inputTranscript.current.trim()) {
-              addChatMessage('user', inputTranscript.current.trim());
-              inputTranscript.current = '';
-            }
-            if (outputTranscript.current.trim()) {
-              addChatMessage('npc', outputTranscript.current.trim());
-              outputTranscript.current = '';
-            }
-          }
-        }
       } catch (err: any) {
-        console.error('[GeminiLive] Error:', err.message || err);
+        console.error('[GeminiLive] Microphone error:', err.message || err);
+      }
+    };
+
+    // Connect to Gemini Live using callback-based API
+    const connect = async () => {
+      try {
+        const session = await ai.live.connect({
+          model: CONFIG.MODEL_ID,
+          callbacks: {
+            onopen: () => {
+              console.log('[GeminiLive] Connected');
+              if (isCleaningUpRef.current) {
+                session.close();
+                return;
+              }
+              sessionRef.current = session;
+              setLiveConnectionState('connected');
+              setupMicrophone(session);
+            },
+            onmessage: (message: LiveServerMessage) => {
+              handleMessage(message);
+            },
+            onerror: (e: ErrorEvent) => {
+              console.error('[GeminiLive] Error:', e.message || e);
+              if (!isCleaningUpRef.current) {
+                setLiveConnectionState('disconnected');
+              }
+            },
+            onclose: () => {
+              console.log('[GeminiLive] Connection closed');
+              if (!isCleaningUpRef.current) {
+                setLiveConnectionState('disconnected');
+              }
+            },
+          },
+          config: {
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: liveSession.npc!.voiceName },
+              },
+            },
+            systemInstruction: liveSession.npc!.systemInstruction,
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
+          },
+        });
+      } catch (err: any) {
+        console.error('[GeminiLive] Connection error:', err.message || err);
         if (!isCleaningUpRef.current) {
           setLiveConnectionState('disconnected');
-          // Don't auto-end session, let user retry
         }
       }
     };
