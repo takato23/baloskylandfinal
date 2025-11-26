@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- Sky background -->
+  <circle cx="96" cy="96" r="96" fill="#87CEEB"/>
+
+  <!-- Sun -->
+  <circle cx="150" cy="45" r="15" fill="#FFD700"/>
+
+  <!-- Ground/grass -->
+  <rect x="0" y="120" width="192" height="72" fill="#4CAF50"/>
+
+  <!-- City buildings -->
+  <!-- Building 1 - left -->
+  <rect x="30" y="75" width="30" height="45" fill="#4A90E2" rx="2"/>
+  <rect x="36" y="82" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="48" y="82" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="36" y="94" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="48" y="94" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="36" y="106" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="48" y="106" width="6" height="6" fill="#fff" opacity="0.8"/>
+
+  <!-- Building 2 - center (taller) -->
+  <rect x="75" y="56" width="34" height="64" fill="#5B9BD5" rx="2"/>
+  <rect x="81" y="64" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="90" y="64" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="99" y="64" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="81" y="75" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="90" y="75" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="99" y="75" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="81" y="86" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="90" y="86" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="99" y="86" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="81" y="97" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="90" y="97" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="99" y="97" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="81" y="108" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="90" y="108" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="99" y="108" width="6" height="6" fill="#fff" opacity="0.8"/>
+
+  <!-- Building 3 - right -->
+  <rect x="127" y="67" width="32" height="53" fill="#6C9FD8" rx="2"/>
+  <rect x="133" y="75" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="142" y="75" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="151" y="75" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="133" y="86" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="142" y="86" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="151" y="86" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="133" y="97" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="142" y="97" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="151" y="97" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="133" y="108" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="142" y="108" width="6" height="6" fill="#fff" opacity="0.8"/>
+  <rect x="151" y="108" width="6" height="6" fill="#fff" opacity="0.8"/>
+
+  <!-- Road -->
+  <rect x="0" y="127" width="192" height="23" fill="#555"/>
+  <rect x="8" y="137" width="23" height="4" fill="#FFD700"/>
+  <rect x="45" y="137" width="23" height="4" fill="#FFD700"/>
+  <rect x="82" y="137" width="23" height="4" fill="#FFD700"/>
+  <rect x="120" y="137" width="23" height="4" fill="#FFD700"/>
+  <rect x="157" y="137" width="23" height="4" fill="#FFD700"/>
+
+  <!-- Cute animal character -->
+  <g transform="translate(37, 127)">
+    <!-- Animal body -->
+    <circle cx="19" cy="11" r="13" fill="#a7c388"/>
+    <circle cx="19" cy="13" r="9" fill="#8FBC8F"/>
+
+    <!-- Eyes -->
+    <circle cx="16" cy="10" r="2" fill="#fff"/>
+    <circle cx="22" cy="10" r="2" fill="#fff"/>
+    <circle cx="16" cy="10" r="1" fill="#333"/>
+    <circle cx="22" cy="10" r="1" fill="#333"/>
+
+    <!-- Nose -->
+    <ellipse cx="19" cy="15" rx="4" ry="2" fill="#ffb6c1"/>
+    <circle cx="19" cy="16" r="1" fill="#333"/>
+
+    <!-- Ears -->
+    <ellipse cx="11" cy="4" rx="3" ry="5" fill="#a7c388"/>
+    <ellipse cx="26" cy="4" rx="3" ry="5" fill="#a7c388"/>
+  </g>
+
+  <!-- Skateboard -->
+  <rect x="49" y="146" width="19" height="3" fill="#FF9800" rx="1.5"/>
+  <circle cx="52" cy="149" r="2" fill="#333"/>
+  <circle cx="64" cy="149" r="2" fill="#333"/>
+</svg>

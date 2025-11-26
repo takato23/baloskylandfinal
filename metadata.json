@@ -1,0 +1,7 @@
+{
+  "name": "Cozy City Explorer",
+  "description": "A cozy, low-poly 3D city explorer game inspired by Animal Crossing and Roblox using React Three Fiber.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
