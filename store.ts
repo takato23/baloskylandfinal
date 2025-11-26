@@ -21,6 +21,7 @@ import type {
   MobileInputState,
   InventoryItem,
 } from './types';
+import { ANIMAL_TYPES } from './types';
 
 // Re-export types for backward compatibility
 export type { AnimalType, AccessoryType, WeatherType, TrafficState, NpcConfig, ChatMessage, InventoryItem };
@@ -167,13 +168,86 @@ interface GameState {
 // Default Values
 // ============================================
 
-const DEFAULT_CHARACTER: CharacterAppearance = {
-  type: 'bear',
-  skin: '#fcd5ce',
-  shirt: '#FF9A8B',
-  pants: '#4a90e2',
-  accessory: 'backpack',
+// Random color generator for character customization
+const getRandomColor = () => {
+  const colors = [
+    '#fcd5ce', '#f8b4b4', '#a8d5ba', '#b8d4e3', '#f9e79f',
+    '#d7bde2', '#aed6f1', '#f5b7b1', '#d5f5e3', '#fadbd8',
+    '#e8daef', '#d4efdf', '#fcf3cf', '#d6eaf8', '#fdebd0'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
 };
+
+const getRandomShirtColor = () => {
+  const colors = [
+    '#FF9A8B', '#667eea', '#f093fb', '#4facfe', '#43e97b',
+    '#fa709a', '#fee140', '#30cfd0', '#a8edea', '#fed6e3',
+    '#d299c2', '#fef9d7', '#96fbc4', '#f77062', '#c471f5'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+const getRandomPantsColor = () => {
+  const colors = [
+    '#4a90e2', '#2c3e50', '#8e44ad', '#16a085', '#d35400',
+    '#1abc9c', '#3498db', '#9b59b6', '#e74c3c', '#f39c12',
+    '#27ae60', '#e67e22', '#2980b9', '#c0392b', '#7f8c8d'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+// Get random animal type
+const getRandomAnimalType = (): AnimalType => {
+  return ANIMAL_TYPES[Math.floor(Math.random() * ANIMAL_TYPES.length)];
+};
+
+// Generate a random character appearance
+const generateRandomCharacter = (): CharacterAppearance => ({
+  type: getRandomAnimalType(),
+  skin: getRandomColor(),
+  shirt: getRandomShirtColor(),
+  pants: getRandomPantsColor(),
+  accessory: 'backpack',
+});
+
+// Storage key for character persistence
+const CHARACTER_STORAGE_KEY = 'villa_libertad_character';
+
+// Load character from localStorage or generate random one
+const loadOrCreateCharacter = (): CharacterAppearance => {
+  try {
+    const saved = localStorage.getItem(CHARACTER_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Validate the saved character has all required fields
+      if (parsed.type && parsed.skin && parsed.shirt && parsed.pants) {
+        return parsed as CharacterAppearance;
+      }
+    }
+  } catch (e) {
+    console.log('Creating new random character for player');
+  }
+
+  // Generate and save a new random character
+  const newCharacter = generateRandomCharacter();
+  try {
+    localStorage.setItem(CHARACTER_STORAGE_KEY, JSON.stringify(newCharacter));
+  } catch (e) {
+    // localStorage might be full or unavailable
+  }
+  return newCharacter;
+};
+
+// Save character to localStorage
+const saveCharacter = (character: CharacterAppearance) => {
+  try {
+    localStorage.setItem(CHARACTER_STORAGE_KEY, JSON.stringify(character));
+  } catch (e) {
+    // localStorage might be full or unavailable
+  }
+};
+
+const DEFAULT_CHARACTER: CharacterAppearance = loadOrCreateCharacter();
 
 const DEFAULT_MOBILE_INPUT: MobileInputState = {
   joystick: { x: 0, y: 0, active: false },
@@ -247,35 +321,47 @@ export const useGameStore = create<GameState>()(
     character: DEFAULT_CHARACTER,
 
     setSkin: (color) =>
-      set((state) => ({
-        character: { ...state.character, skin: color },
-      })),
+      set((state) => {
+        const newCharacter = { ...state.character, skin: color };
+        saveCharacter(newCharacter);
+        return { character: newCharacter };
+      }),
 
     setShirt: (color) =>
-      set((state) => ({
-        character: { ...state.character, shirt: color },
-      })),
+      set((state) => {
+        const newCharacter = { ...state.character, shirt: color };
+        saveCharacter(newCharacter);
+        return { character: newCharacter };
+      }),
 
     setPants: (color) =>
-      set((state) => ({
-        character: { ...state.character, pants: color },
-      })),
+      set((state) => {
+        const newCharacter = { ...state.character, pants: color };
+        saveCharacter(newCharacter);
+        return { character: newCharacter };
+      }),
 
     setType: (type) =>
-      set((state) => ({
-        character: { ...state.character, type },
-      })),
+      set((state) => {
+        const newCharacter = { ...state.character, type };
+        saveCharacter(newCharacter);
+        return { character: newCharacter };
+      }),
 
     setAccessory: (accessory) =>
-      set((state) => ({
-        character: { ...state.character, accessory },
-      })),
+      set((state) => {
+        const newCharacter = { ...state.character, accessory };
+        saveCharacter(newCharacter);
+        return { character: newCharacter };
+      }),
 
-    // New: Update multiple character properties at once
+    // Update multiple character properties at once
     setCharacter: (updates) =>
-      set((state) => ({
-        character: { ...state.character, ...updates },
-      })),
+      set((state) => {
+        const newCharacter = { ...state.character, ...updates };
+        saveCharacter(newCharacter);
+        return { character: newCharacter };
+      }),
 
     // --- Interaction System ---
     interactionLabel: null,

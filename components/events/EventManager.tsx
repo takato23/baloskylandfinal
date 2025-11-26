@@ -4,7 +4,6 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { TreasureHunt } from './TreasureHunt';
 import { SkateRace } from './SkateRace';
 import { useEvents } from '../../hooks/useEvents';
 import {
@@ -24,7 +23,7 @@ const EVENT_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const EVENT_DURATION = 5 * 60 * 1000; // 5 minutes
 const COUNTDOWN_DURATION = 30 * 1000; // 30 seconds
 
-const EVENT_TYPES: EventType[] = ['treasure_hunt', 'skate_race'];
+const EVENT_TYPES: EventType[] = ['skate_race']; // treasure_hunt removed
 
 // ============================================
 // Event Manager Component
@@ -170,10 +169,6 @@ export const EventManager: React.FC = () => {
 
   return (
     <group>
-      {currentEvent.type === 'treasure_hunt' && currentEvent.status === 'active' && (
-        <TreasureHunt event={currentEvent} onComplete={handleEventComplete} />
-      )}
-
       {currentEvent.type === 'skate_race' && currentEvent.status === 'active' && (
         <SkateRace event={currentEvent} onComplete={handleEventComplete} />
       )}

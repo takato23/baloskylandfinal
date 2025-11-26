@@ -97,6 +97,7 @@ export interface NpcConfig {
   systemInstruction: string;
   voiceName: VoiceName;
   greeting: string;
+  fallbackDialogues?: string[]; // Offline/quick dialogues for when API unavailable
 }
 
 export interface ChatMessage {

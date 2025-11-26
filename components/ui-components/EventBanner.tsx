@@ -1,6 +1,7 @@
 /**
  * Event Banner
- * UI overlay displaying current event status, timer, and results
+ * Minimal, non-intrusive event notification system
+ * Only shows when real multiplayer events are active
  */
 
 import React, { useEffect, useState, memo } from 'react';
@@ -9,68 +10,24 @@ import { formatTime, getTimeRemaining } from '../../lib/events';
 import type { EventType } from '../../lib/events';
 
 // ============================================
-// Event Icon
+// Event Config
 // ============================================
 
-const EventIcon: React.FC<{ type: EventType }> = ({ type }) => {
-  switch (type) {
-    case 'treasure_hunt':
-      return <span className="text-3xl">💎</span>;
-    case 'skate_race':
-      return <span className="text-3xl">🛹</span>;
-    default:
-      return <span className="text-3xl">🎉</span>;
-  }
+const EVENT_CONFIG: Record<EventType, { icon: string; title: string; description: string }> = {
+  treasure_hunt: {
+    icon: '💎',
+    title: 'Búsqueda del Tesoro',
+    description: '¡Encuentra los cofres dorados!',
+  },
+  skate_race: {
+    icon: '🛹',
+    title: 'Carrera de Skate',
+    description: '¡Pasa por los checkpoints!',
+  },
 };
 
 // ============================================
-// Event Title
-// ============================================
-
-const getEventTitle = (type: EventType): string => {
-  switch (type) {
-    case 'treasure_hunt':
-      return 'Búsqueda del Tesoro';
-    case 'skate_race':
-      return 'Carrera de Skate';
-    default:
-      return 'Evento Comunitario';
-  }
-};
-
-const getEventDescription = (type: EventType): string => {
-  switch (type) {
-    case 'treasure_hunt':
-      return '¡Encuentra los cofres dorados antes que nadie!';
-    case 'skate_race':
-      return '¡Pasa por todos los checkpoints lo más rápido posible!';
-    default:
-      return '¡Participa y gana premios!';
-  }
-};
-
-// ============================================
-// Countdown Display
-// ============================================
-
-interface CountdownProps {
-  seconds: number;
-}
-
-const Countdown: React.FC<CountdownProps> = memo(({ seconds }) => {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="text-4xl font-black text-white drop-shadow-lg">
-        ⏱️ {formatTime(seconds)}
-      </div>
-    </div>
-  );
-});
-
-Countdown.displayName = 'Countdown';
-
-// ============================================
-// Leaderboard Display
+// Leaderboard Modal
 // ============================================
 
 interface LeaderboardProps {
@@ -81,42 +38,53 @@ interface LeaderboardProps {
     time?: number;
   }>;
   eventType: EventType;
+  onClose: () => void;
 }
 
-const Leaderboard: React.FC<LeaderboardProps> = ({ rankings, eventType }) => {
+const Leaderboard: React.FC<LeaderboardProps> = ({ rankings, eventType, onClose }) => {
+  const config = EVENT_CONFIG[eventType] || { icon: '🎉', title: 'Evento' };
+
   return (
-    <div className="bg-white rounded-xl border-4 border-black p-4 max-w-md">
-      <h3 className="text-2xl font-black text-purple-600 mb-3 text-center">
-        🏆 Resultados
-      </h3>
-      <div className="space-y-2">
-        {rankings.slice(0, 10).map((entry, index) => (
-          <div
-            key={entry.userId}
-            className={`flex items-center justify-between p-2 rounded-lg ${
-              index === 0
-                ? 'bg-gradient-to-r from-yellow-200 to-yellow-300'
-                : index === 1
-                ? 'bg-gradient-to-r from-gray-200 to-gray-300'
-                : index === 2
-                ? 'bg-gradient-to-r from-orange-200 to-orange-300'
-                : 'bg-gray-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold">
-                {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-black text-gray-800 flex items-center gap-2">
+            <span>{config.icon}</span>
+            Resultados
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+
+        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+          {rankings.slice(0, 10).map((entry, index) => (
+            <div
+              key={entry.userId}
+              className={`flex items-center justify-between p-2.5 rounded-xl ${
+                index === 0
+                  ? 'bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-300'
+                  : index === 1
+                  ? 'bg-gradient-to-r from-gray-100 to-slate-100 border border-gray-300'
+                  : index === 2
+                  ? 'bg-gradient-to-r from-orange-100 to-amber-100 border border-orange-300'
+                  : 'bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold w-6">
+                  {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`}
+                </span>
+                <span className="font-semibold text-gray-800 text-sm">{entry.username}</span>
+              </div>
+              <span className="text-sm font-bold text-gray-600">
+                {eventType === 'treasure_hunt' && `${entry.score} 💎`}
+                {eventType === 'skate_race' && entry.time && formatTime(Math.floor(entry.time / 1000))}
               </span>
-              <span className="font-bold text-gray-800">{entry.username}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-700 font-bold">
-              {eventType === 'treasure_hunt' && <span>💰 {entry.score}</span>}
-              {eventType === 'skate_race' && entry.time && (
-                <span>⏱️ {formatTime(Math.floor(entry.time / 1000))}</span>
-              )}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -124,12 +92,14 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ rankings, eventType }) => {
 
 // ============================================
 // Event Banner Component
+// Minimal, non-intrusive - only shows for real events
 // ============================================
 
 export const EventBanner: React.FC = () => {
   const { currentEvent, isParticipating, leaderboard, playerProgress, joinEvent } = useEvents();
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   // Update timer
   useEffect(() => {
@@ -157,94 +127,93 @@ export const EventBanner: React.FC = () => {
   useEffect(() => {
     if (currentEvent?.status === 'finished' && leaderboard) {
       setShowResults(true);
-
-      // Auto-hide results after 15 seconds
-      const timeout = setTimeout(() => {
-        setShowResults(false);
-      }, 15000);
-
-      return () => clearTimeout(timeout);
     }
   }, [currentEvent, leaderboard]);
 
-  // No active event
+  // Reset dismissed state when new event starts
+  useEffect(() => {
+    if (currentEvent?.id) {
+      setIsDismissed(false);
+    }
+  }, [currentEvent?.id]);
+
+  // No active event - don't show anything
   if (!currentEvent || currentEvent.status === 'scheduled') {
     return null;
   }
 
-  // Show results
+  // Show results modal
   if (showResults && leaderboard) {
     return (
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-in zoom-in duration-300">
-        <Leaderboard rankings={leaderboard.rankings} eventType={currentEvent.type} />
-        <button
-          onClick={() => setShowResults(false)}
-          className="mt-4 w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
-        >
-          Cerrar
-        </button>
-      </div>
+      <Leaderboard
+        rankings={leaderboard.rankings}
+        eventType={currentEvent.type}
+        onClose={() => setShowResults(false)}
+      />
     );
   }
 
-  // Event starting countdown
+  const config = EVENT_CONFIG[currentEvent.type] || { icon: '🎉', title: 'Evento', description: '¡Participa!' };
+
+  // Event starting countdown - compact toast
   if (currentEvent.status === 'starting') {
+    const countdown = Math.ceil((currentEvent.startTime - Date.now()) / 1000);
     return (
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
-        <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl border-4 border-white shadow-2xl p-8 text-center animate-pulse">
-          <EventIcon type={currentEvent.type} />
-          <h2 className="text-4xl font-black text-white mt-4 drop-shadow-lg">
-            {getEventTitle(currentEvent.type)}
-          </h2>
-          <p className="text-xl text-white/90 mt-2">{getEventDescription(currentEvent.type)}</p>
-          <div className="text-6xl font-black text-white mt-6">
-            ¡Comienza en {Math.ceil((currentEvent.startTime - Date.now()) / 1000)}s!
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom duration-300">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl px-5 py-3 shadow-xl flex items-center gap-3">
+          <span className="text-2xl">{config.icon}</span>
+          <div>
+            <p className="font-bold text-sm">{config.title}</p>
+            <p className="text-xs text-white/80">Comienza en {countdown}s</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Active event banner
-  return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 rounded-2xl border-4 border-white shadow-2xl p-4 min-w-[400px] pointer-events-auto">
-        <div className="flex items-center justify-between gap-4">
-          {/* Event Info */}
-          <div className="flex items-center gap-3">
-            <EventIcon type={currentEvent.type} />
-            <div>
-              <h3 className="text-xl font-black text-white drop-shadow-md">
-                {getEventTitle(currentEvent.type)}
-              </h3>
-              {isParticipating && playerProgress && (
-                <p className="text-sm text-white/90 font-bold">
-                  {currentEvent.type === 'treasure_hunt' && `💰 ${playerProgress.score} cofres`}
-                  {currentEvent.type === 'skate_race' &&
-                    `✅ ${playerProgress.score} checkpoints`}
-                </p>
-              )}
-            </div>
-          </div>
+  // Don't show if dismissed and not participating
+  if (isDismissed && !isParticipating) {
+    return null;
+  }
 
-          {/* Timer */}
-          <Countdown seconds={timeRemaining} />
+  // Active event - minimal bottom pill
+  return (
+    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+      <div className="bg-black/80 backdrop-blur-md text-white rounded-2xl px-4 py-2.5 shadow-xl flex items-center gap-3 border border-white/10">
+        <span className="text-xl">{config.icon}</span>
+
+        <div className="flex flex-col">
+          <span className="font-bold text-sm leading-tight">{config.title}</span>
+          {isParticipating && playerProgress ? (
+            <span className="text-xs text-green-400">
+              {currentEvent.type === 'treasure_hunt' && `${playerProgress.score} 💎`}
+              {currentEvent.type === 'skate_race' && `${playerProgress.score} ✅`}
+            </span>
+          ) : (
+            <span className="text-xs text-white/60">{currentEvent.participants.length} jugando</span>
+          )}
         </div>
 
-        {/* Join Button */}
-        {!isParticipating && (
+        <div className="flex items-center gap-1 text-sm font-mono bg-white/10 px-2 py-1 rounded-lg">
+          <span>⏱</span>
+          <span>{formatTime(timeRemaining)}</span>
+        </div>
+
+        {!isParticipating ? (
           <button
             onClick={() => joinEvent(currentEvent.id)}
-            className="mt-3 w-full bg-white text-purple-600 font-black py-2 px-4 rounded-lg hover:bg-gray-100 transition-all transform hover:scale-105 active:scale-95"
+            className="bg-green-500 hover:bg-green-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors"
           >
-            ¡PARTICIPAR! 🎉
+            Unirse
+          </button>
+        ) : (
+          <button
+            onClick={() => setIsDismissed(true)}
+            className="text-white/40 hover:text-white/70 text-xs px-1"
+          >
+            ✕
           </button>
         )}
-
-        {/* Participants count */}
-        <div className="mt-2 text-center text-sm text-white/80 font-semibold">
-          {currentEvent.participants.length} jugadores participando
-        </div>
       </div>
     </div>
   );

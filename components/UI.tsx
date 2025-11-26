@@ -45,6 +45,9 @@ const ActivityHUD = lazy(() => import('./ui-components/ActivityHUD').then(m => (
 const SharePanel = lazy(() => import('./ui-components/SharePanel').then(m => ({ default: m.SharePanel })));
 const SeasonalEventManager = lazy(() => import('./ui-components/SeasonalEventManager').then(m => ({ default: m.SeasonalEventManager })));
 
+// PWA Install Prompt
+import { PWAInstallPrompt } from './ui-components/PWAInstallPrompt';
+
 // ============================================
 // Haptic Feedback Helper
 // ============================================
@@ -181,15 +184,20 @@ const MENU_ITEMS = [
 const HUD: React.FC<HUDProps> = memo(
   ({ coins, isDriving, isHidden, isMobile, isLandscape, onEditCharacter, onStartDriving, onShare, onOpenShop, onOpenAchievements, onOpenGuild, onOpenTrading, onOpenCritterpedia, onOpenDailyRewards, onOpenPhotoMode, onOpenEconomyShop, onOpenMissions, onOpenStats, missionBadge }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const quickMenuRef = useRef<HTMLDivElement>(null);
 
     // Close menu when clicking outside
     useEffect(() => {
-      if (!isExpanded) return;
+      if (!isExpanded && !isQuickMenuOpen) return;
 
       const handleClickOutside = (e: TouchEvent | MouseEvent) => {
-        if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        if (isExpanded && menuRef.current && !menuRef.current.contains(e.target as Node)) {
           setIsExpanded(false);
+        }
+        if (isQuickMenuOpen && quickMenuRef.current && !quickMenuRef.current.contains(e.target as Node)) {
+          setIsQuickMenuOpen(false);
         }
       };
 
@@ -200,13 +208,21 @@ const HUD: React.FC<HUDProps> = memo(
         document.removeEventListener('touchstart', handleClickOutside);
         document.removeEventListener('mousedown', handleClickOutside);
       };
-    }, [isExpanded]);
+    }, [isExpanded, isQuickMenuOpen]);
 
     const toggleExpand = useCallback(() => {
       vibrate(15);
       playSound('coin');
       setIsExpanded(!isExpanded);
+      setIsQuickMenuOpen(false);
     }, [isExpanded]);
+
+    const toggleQuickMenu = useCallback(() => {
+      vibrate(15);
+      playSound('coin');
+      setIsQuickMenuOpen(!isQuickMenuOpen);
+      setIsExpanded(false);
+    }, [isQuickMenuOpen]);
 
     const handleMenuAction = useCallback((action: string) => {
       setIsExpanded(false);
@@ -317,28 +333,65 @@ const HUD: React.FC<HUDProps> = memo(
           </div>
         </div>
 
-        {/* Quick Actions Bar (visible when menu closed) */}
-        {!isExpanded && !isDriving && (
-          <div className="absolute top-0 right-[-70px] flex flex-col gap-2 pointer-events-auto">
-            {/* Quick Character Edit */}
+        {/* Quick Menu - Expandable button with Photo, Character, and Main Menu */}
+        {!isDriving && (
+          <div
+            ref={quickMenuRef}
+            className="absolute top-0 right-[-60px] flex flex-col items-center gap-2 pointer-events-auto"
+          >
+            {/* Main toggle button - Plus/Cross icon */}
             <button
-              onClick={onEditCharacter}
-              className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-amber-600 shadow-lg flex items-center justify-center touch-manipulation active:scale-90 transition-transform"
-              aria-label="Editar personaje"
+              onClick={toggleQuickMenu}
+              className={`w-12 h-12 rounded-2xl shadow-lg flex items-center justify-center touch-manipulation transition-all active:scale-90 border-2 ${
+                isQuickMenuOpen
+                  ? 'bg-gradient-to-br from-red-400 to-red-500 border-red-600 rotate-45'
+                  : 'bg-gradient-to-br from-violet-400 to-violet-500 border-violet-600'
+              }`}
+              aria-label={isQuickMenuOpen ? 'Cerrar menú rápido' : 'Abrir menú rápido'}
+              aria-expanded={isQuickMenuOpen}
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <span className="text-xl">👕</span>
+              <span className={`text-xl transition-transform duration-300 ${isQuickMenuOpen ? '-rotate-45' : ''}`}>
+                {isQuickMenuOpen ? '✕' : '✦'}
+              </span>
             </button>
 
-            {/* Quick Share */}
-            <button
-              onClick={onShare}
-              className="w-11 h-11 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 border-2 border-pink-600 shadow-lg flex items-center justify-center touch-manipulation active:scale-90 transition-transform"
-              aria-label="Compartir"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <span className="text-xl">📸</span>
-            </button>
+            {/* Expanded quick actions */}
+            <div className={`flex flex-col gap-2 transition-all duration-300 ${
+              isQuickMenuOpen
+                ? 'opacity-100 translate-y-0 pointer-events-auto'
+                : 'opacity-0 -translate-y-4 pointer-events-none'
+            }`}>
+              {/* Photo Mode */}
+              <button
+                onClick={() => { setIsQuickMenuOpen(false); onOpenPhotoMode(); }}
+                className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-cyan-600 shadow-lg flex items-center justify-center touch-manipulation active:scale-90 transition-transform"
+                aria-label="Modo foto"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <span className="text-xl">📷</span>
+              </button>
+
+              {/* Character Customization */}
+              <button
+                onClick={() => { setIsQuickMenuOpen(false); onEditCharacter(); }}
+                className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-amber-600 shadow-lg flex items-center justify-center touch-manipulation active:scale-90 transition-transform"
+                aria-label="Editar personaje"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <span className="text-xl">👕</span>
+              </button>
+
+              {/* Main Menu (Leaves) */}
+              <button
+                onClick={() => { setIsQuickMenuOpen(false); toggleExpand(); }}
+                className="w-11 h-11 rounded-xl bg-gradient-to-br from-green-400 to-green-500 border-2 border-green-600 shadow-lg flex items-center justify-center touch-manipulation active:scale-90 transition-transform"
+                aria-label="Menú principal"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <span className="text-xl">🍃</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -856,11 +909,11 @@ export const UI: React.FC = () => {
       {/* Multiplayer Chat - Replaces old GameChat */}
       <MultiplayerChat isOpen={showMultiplayerChat} onClose={handleCloseMultiplayerChat} />
 
-      {/* Online Indicator - Shows player count */}
+      {/* Online Indicator - Shows player count, positioned to not block other UI */}
       {!showMultiplayerChat && !isLiveSessionOpen && (
         <OnlineIndicator
           onClick={handleToggleMultiplayerChat}
-          className="fixed bottom-20 right-4 z-40"
+          className={`fixed z-40 ${isMobile ? 'top-4 left-1/2 -translate-x-1/2' : 'bottom-20 right-4'}`}
         />
       )}
 
@@ -871,30 +924,16 @@ export const UI: React.FC = () => {
       {showControlsHint && <ControlsHint isDriving={isDriving} />}
 
       {/* Accessibility toggles - hidden on mobile during gameplay, accessible via menu */}
-      {!isMobile && (
-        <div className="absolute bottom-4 left-4 z-30 flex flex-col gap-2 pointer-events-auto">
-          <div className="bg-white/85 border-2 border-black rounded-lg shadow-md px-3 py-2 flex flex-col gap-1">
-            <button
-              onClick={() => setHighContrast(!highContrast)}
-              className={`text-sm font-semibold rounded px-2 py-1 border ${highContrast ? 'bg-black text-white' : 'bg-gray-100 text-gray-800'}`}
-            >
-              Alto contraste {highContrast ? 'ON' : 'OFF'}
-            </button>
-            <button
-              onClick={() => setReduceMotion(!reduceMotion)}
-              className={`text-sm font-semibold rounded px-2 py-1 border ${reduceMotion ? 'bg-black text-white' : 'bg-gray-100 text-gray-800'}`}
-            >
-              Menos animación {reduceMotion ? 'ON' : 'OFF'}
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Debug Panel - triple tap top-left or F3 */}
       <DebugPanel />
 
       {/* Performance Overlay - toggle with ~ key */}
       <PerformanceOverlay />
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 };

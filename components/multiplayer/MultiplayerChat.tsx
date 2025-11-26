@@ -1,7 +1,7 @@
 /**
- * Multiplayer Chat Component
+ * Multiplayer Chat Component - Roblox Style
+ * Messages always visible, input expands on tap
  * Real-time chat connected to Supabase backend
- * Supports global and proximity chat for 100+ users
  */
 
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
@@ -22,6 +22,20 @@ const USERNAME_COLORS = [
 const EMOTES = ['👋', '❤️', '😂', '🎉', '👍', '🔥', '⭐', '🎮'];
 
 const getRandomColor = () => USERNAME_COLORS[Math.floor(Math.random() * USERNAME_COLORS.length)];
+
+// Max messages to show in the overlay
+const MAX_VISIBLE_MESSAGES = 5;
+const MESSAGE_FADE_TIME = 8000; // 8 seconds before messages fade
+
+// ============================================
+// Haptic Feedback Helper
+// ============================================
+
+const vibrate = (pattern: number = 10) => {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(pattern);
+  }
+};
 
 // ============================================
 // Username Modal
@@ -114,8 +128,8 @@ const Message: React.FC<MessageProps> = memo(({ message, isOwn }) => {
 
   if (message.type === 'system') {
     return (
-      <div className="text-center py-1">
-        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+      <div className="text-center py-0.5">
+        <span className="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
           {message.text}
         </span>
       </div>
@@ -123,22 +137,21 @@ const Message: React.FC<MessageProps> = memo(({ message, isOwn }) => {
   }
 
   return (
-    <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} mb-2`}>
-      <div className="flex items-center gap-2 mb-0.5">
-        <span className="text-xs font-semibold" style={{ color: message.color }}>
+    <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} mb-1`}>
+      <div className="flex items-center gap-1 mb-0.5">
+        <span className="text-[10px] font-semibold" style={{ color: message.color }}>
           {message.username}
         </span>
-        <span className="text-[10px] text-gray-400">{timeString}</span>
+        <span className="text-[9px] text-gray-400">{timeString}</span>
         {message.type === 'proximity' && (
-          <span className="text-[10px] text-blue-400">(cerca)</span>
+          <span className="text-[9px] text-blue-400">📍</span>
         )}
       </div>
       <div
-        className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm ${
-          isOwn
-            ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-tr-sm'
-            : 'bg-gray-100 text-gray-800 rounded-tl-sm'
-        }`}
+        className={`max-w-[90%] px-2 py-1 rounded-xl text-xs ${isOwn
+          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-tr-sm'
+          : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+          }`}
       >
         {message.text}
       </div>
@@ -160,13 +173,17 @@ interface MinimizedBubbleProps {
 
 const MinimizedBubble: React.FC<MinimizedBubbleProps> = memo(({ unreadCount, onlineCount, onClick }) => (
   <button
-    onClick={onClick}
-    className="fixed bottom-20 right-4 z-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-xl flex items-center gap-2 px-4 py-3 hover:scale-105 transition-transform active:scale-95"
+    onClick={() => {
+      vibrate(10);
+      onClick();
+    }}
+    className="fixed z-30 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl shadow-xl flex items-center gap-1.5 px-3 py-2 hover:scale-105 transition-transform active:scale-95 touch-manipulation top-[72px] left-3"
+    style={{ WebkitTapHighlightColor: 'transparent' }}
   >
-    <span className="text-xl">💬</span>
-    <span className="text-sm font-bold">{onlineCount} online</span>
+    <span className="text-base">💬</span>
+    <span className="text-xs font-bold">{onlineCount}</span>
     {unreadCount > 0 && (
-      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
         {unreadCount > 9 ? '9+' : unreadCount}
       </span>
     )}
@@ -176,7 +193,83 @@ const MinimizedBubble: React.FC<MinimizedBubbleProps> = memo(({ unreadCount, onl
 MinimizedBubble.displayName = 'MinimizedBubble';
 
 // ============================================
-// Main Multiplayer Chat Component
+// Mobile Header Component
+// ============================================
+
+interface MobileHeaderProps {
+  onlineCount: number;
+  onMinimize: () => void;
+  onClose: () => void;
+}
+
+const MobileHeader: React.FC<MobileHeaderProps> = memo(({ onlineCount, onMinimize, onClose }) => (
+  <header className="bg-gradient-to-r from-purple-500 to-pink-500 px-2.5 py-1.5 text-white flex justify-between items-center shadow-lg shrink-0">
+    <div className="flex items-center gap-1.5">
+      <span className="text-base">🌎</span>
+      <div>
+        <h3 className="font-bold text-xs leading-tight">Chat Global</h3>
+        <span className="text-[9px] text-white/80">{onlineCount} exploradores online</span>
+      </div>
+    </div>
+    <button
+      onClick={() => {
+        vibrate(10);
+        onClose();
+      }}
+      className="bg-white/20 active:bg-red-500/80 rounded-full p-1.5 text-white transition-all touch-manipulation"
+      aria-label="Cerrar"
+    >
+      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </header>
+));
+
+MobileHeader.displayName = 'MobileHeader';
+
+// ============================================
+// Floating Message (Roblox style - fades out)
+// ============================================
+
+interface FloatingMessageProps {
+  message: ChatMessageV2;
+  isNew: boolean;
+}
+
+const FloatingMessage: React.FC<FloatingMessageProps> = memo(({ message, isNew }) => {
+  if (message.type === 'system') {
+    return (
+      <div className={`transition-opacity duration-500 ${isNew ? 'opacity-100' : 'opacity-60'}`}>
+        <span className="text-[10px] text-white/70 italic">
+          {message.text}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex items-start gap-1 transition-opacity duration-500 ${isNew ? 'opacity-100' : 'opacity-70'}`}>
+      <span
+        className="text-[11px] font-bold shrink-0"
+        style={{ color: message.color, textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+      >
+        {message.username}:
+      </span>
+      <span
+        className="text-[11px] text-white break-words"
+        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+      >
+        {message.text}
+      </span>
+    </div>
+  );
+});
+
+FloatingMessage.displayName = 'FloatingMessage';
+
+// ============================================
+// Main Multiplayer Chat Component - Roblox Style
 // ============================================
 
 interface MultiplayerChatProps {
@@ -190,14 +283,10 @@ export const MultiplayerChat: React.FC<MultiplayerChatProps> = ({ isOpen, onClos
   const onlineCount = useOnlineCountV2();
 
   const [inputText, setInputText] = useState('');
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showEmotes, setShowEmotes] = useState(false);
-  const [chatType, setChatType] = useState<'global' | 'proximity'>('global');
+  const [isInputOpen, setIsInputOpen] = useState(false);
+  const [messageTimestamps, setMessageTimestamps] = useState<Record<string, number>>({});
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const lastMessageCount = useRef(0);
 
   const isMobile = useIsMobile();
   const orientation = useOrientation();
@@ -214,27 +303,22 @@ export const MultiplayerChat: React.FC<MultiplayerChatProps> = ({ isOpen, onClos
     }
   }, [savedUsername, savedColor, isConnected, connect]);
 
-  // Auto-scroll on new messages
+  // Track message timestamps for fade effect
   useEffect(() => {
-    if (scrollRef.current && !isMinimized) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isMinimized]);
+    const now = Date.now();
+    const newTimestamps: Record<string, number> = {};
+    messages.forEach(msg => {
+      newTimestamps[msg.id] = messageTimestamps[msg.id] || now;
+    });
+    setMessageTimestamps(newTimestamps);
+  }, [messages]);
 
-  // Track unread messages
+  // Focus input when opened
   useEffect(() => {
-    if (isMinimized && messages.length > lastMessageCount.current) {
-      setUnreadCount((prev) => prev + (messages.length - lastMessageCount.current));
+    if (isInputOpen && inputRef.current) {
+      inputRef.current.focus();
     }
-    lastMessageCount.current = messages.length;
-  }, [messages.length, isMinimized]);
-
-  // Clear unread when opening
-  useEffect(() => {
-    if (isOpen && !isMinimized) {
-      setUnreadCount(0);
-    }
-  }, [isOpen, isMinimized]);
+  }, [isInputOpen]);
 
   const handleUsernameSubmit = useCallback((username: string, color: string) => {
     connect(username, color);
@@ -244,28 +328,29 @@ export const MultiplayerChat: React.FC<MultiplayerChatProps> = ({ isOpen, onClos
     e?.preventDefault();
     if (!inputText.trim()) return;
 
-    sendMessage(inputText.trim(), chatType);
+    vibrate(15);
+    sendMessage(inputText.trim(), 'global');
     setInputText('');
+    setIsInputOpen(false);
+    inputRef.current?.blur();
+  }, [inputText, sendMessage]);
 
-    if (isMobile) {
-      inputRef.current?.blur();
-    }
-  }, [inputText, chatType, sendMessage, isMobile]);
+  const handleOpenInput = useCallback(() => {
+    vibrate(10);
+    setIsInputOpen(true);
+  }, []);
+
+  const handleCloseInput = useCallback(() => {
+    setIsInputOpen(false);
+    setInputText('');
+    inputRef.current?.blur();
+  }, []);
 
   const handleEmote = useCallback((emote: string) => {
-    doEmote(emote);
+    vibrate(10);
+    doEmote(emote, 'emote');
     sendMessage(emote, 'global');
-    setShowEmotes(false);
   }, [doEmote, sendMessage]);
-
-  const handleMinimize = useCallback(() => {
-    setIsMinimized(true);
-  }, []);
-
-  const handleExpand = useCallback(() => {
-    setIsMinimized(false);
-    setUnreadCount(0);
-  }, []);
 
   if (!isOpen) return null;
 
@@ -274,157 +359,121 @@ export const MultiplayerChat: React.FC<MultiplayerChatProps> = ({ isOpen, onClos
     return <UsernameModal onSubmit={handleUsernameSubmit} />;
   }
 
-  // Show minimized bubble
-  if (isMinimized) {
-    return (
-      <MinimizedBubble
-        unreadCount={unreadCount}
-        onlineCount={onlineCount}
-        onClick={handleExpand}
-      />
-    );
-  }
+  // Get recent messages (last 5, within fade time)
+  const now = Date.now();
+  const recentMessages = messages
+    .slice(-MAX_VISIBLE_MESSAGES)
+    .filter(msg => (now - (messageTimestamps[msg.id] || msg.timestamp)) < MESSAGE_FADE_TIME);
 
-  // Responsive sizing
-  const chatWidth = isMobile ? (isLandscape ? 'w-[45vw]' : 'w-full') : 'w-[400px]';
-  const chatHeight = isMobile ? (isLandscape ? 'h-full' : 'h-[60vh]') : 'h-[500px]';
+  // Position based on orientation - away from joystick
+  const chatPosition = isLandscape
+    ? 'top-16 left-4' // Top left in landscape, below HUD
+    : 'top-20 left-4'; // Top left in portrait, below HUD
 
   return (
-    <div
-      className={`fixed ${
-        isMobile ? (isLandscape ? 'right-0 top-0 bottom-0' : 'bottom-0 left-0 right-0') : 'bottom-4 right-4'
-      } z-40`}
-    >
+    <>
+      {/* Floating Messages Overlay - Always visible */}
       <div
-        className={`${chatWidth} ${chatHeight} bg-white/95 backdrop-blur-xl ${
-          isMobile ? (isLandscape ? 'rounded-l-2xl' : 'rounded-t-2xl') : 'rounded-2xl'
-        } shadow-2xl flex flex-col overflow-hidden animate-in ${
-          isMobile ? 'slide-in-from-bottom' : 'slide-in-from-right'
-        } duration-300 border border-gray-200`}
+        className={`fixed ${chatPosition} z-20 pointer-events-none max-w-[200px]`}
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-white flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🌎</span>
-            <div>
-              <h3 className="font-bold text-base leading-none">Chat Global</h3>
-              <span className="text-xs text-white/80">{onlineCount} exploradores online</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isMobile && (
+        <div className="flex flex-col gap-0.5">
+          {recentMessages.map((msg) => {
+            const age = now - (messageTimestamps[msg.id] || msg.timestamp);
+            const isNew = age < 3000;
+            return (
+              <FloatingMessage
+                key={msg.id}
+                message={msg}
+                isNew={isNew}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Chat Button + Input Area */}
+      <div
+        className={`fixed ${chatPosition} z-30 pointer-events-auto`}
+        style={{
+          transform: `translateY(${recentMessages.length * 18 + 8}px)`,
+          WebkitTapHighlightColor: 'transparent'
+        }}
+      >
+        {isInputOpen ? (
+          // Expanded Input
+          <div className="flex items-center gap-1.5 animate-in slide-in-from-left duration-150">
+            <form onSubmit={handleSendMessage} className="flex items-center gap-1">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onBlur={() => {
+                  // Delay close to allow button clicks
+                  setTimeout(() => {
+                    if (!inputText.trim()) {
+                      handleCloseInput();
+                    }
+                  }, 150);
+                }}
+                placeholder="Mensaje..."
+                maxLength={200}
+                className="w-[140px] bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg px-2 py-1.5 text-[11px] text-white placeholder-white/50 focus:outline-none focus:border-white/40"
+                enterKeyHint="send"
+                style={{ fontSize: '16px' }} // Prevent iOS zoom
+              />
               <button
-                onClick={handleMinimize}
-                className="bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors"
-                aria-label="Minimizar"
+                type="submit"
+                disabled={!inputText.trim()}
+                className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-500 text-white rounded-lg w-7 h-7 flex items-center justify-center transition-colors touch-manipulation"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
-            )}
+            </form>
             <button
-              onClick={onClose}
-              className="bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors"
-              aria-label="Cerrar"
+              onClick={handleCloseInput}
+              className="bg-black/40 hover:bg-black/60 text-white/70 rounded-lg w-7 h-7 flex items-center justify-center transition-colors touch-manipulation"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ✕
             </button>
           </div>
-        </div>
-
-        {/* Chat Type Toggle */}
-        <div className="bg-gray-50 px-4 py-2 flex items-center gap-2 border-b border-gray-100 shrink-0">
+        ) : (
+          // Chat Button
           <button
-            onClick={() => setChatType('global')}
-            className={`text-xs px-3 py-1 rounded-full transition-colors ${
-              chatType === 'global'
-                ? 'bg-purple-500 text-white'
-                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-            }`}
+            onClick={handleOpenInput}
+            className="flex items-center gap-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/20 rounded-lg px-2.5 py-1.5 text-white transition-all touch-manipulation active:scale-95"
           >
-            🌍 Global
+            <span className="text-sm">💬</span>
+            <span className="text-[10px] font-medium">{onlineCount}</span>
           </button>
-          <button
-            onClick={() => setChatType('proximity')}
-            className={`text-xs px-3 py-1 rounded-full transition-colors ${
-              chatType === 'proximity'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-            }`}
-          >
-            📍 Cercanos
-          </button>
-          <div className="flex-1" />
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs text-gray-500">En vivo</span>
-        </div>
+        )}
+      </div>
 
-        {/* Messages Area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 min-h-0">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-2">
-              <span className="text-4xl">👋</span>
-              <p className="text-sm font-medium text-center">No hay mensajes aun</p>
-              <p className="text-xs text-center">Se el primero en saludar!</p>
-            </div>
-          ) : (
-            messages.map((msg) => (
-              <Message key={msg.id} message={msg} isOwn={msg.odIduserId === odIduserId} />
-            ))
-          )}
-        </div>
-
-        {/* Emotes Panel */}
-        {showEmotes && (
-          <div className="bg-gray-50 px-4 py-2 border-t border-gray-100 flex gap-2 flex-wrap">
-            {EMOTES.map((emote) => (
+      {/* Quick Emotes (visible when input is open) */}
+      {isInputOpen && (
+        <div
+          className={`fixed ${chatPosition} z-30 pointer-events-auto animate-in fade-in duration-150`}
+          style={{
+            transform: `translateY(${recentMessages.length * 18 + 44}px)`,
+          }}
+        >
+          <div className="flex gap-1">
+            {EMOTES.slice(0, 4).map((emote) => (
               <button
                 key={emote}
                 onClick={() => handleEmote(emote)}
-                className="text-2xl hover:scale-125 transition-transform p-1"
+                className="bg-black/40 hover:bg-black/60 rounded-lg w-7 h-7 flex items-center justify-center text-sm transition-colors touch-manipulation active:scale-90"
               >
                 {emote}
               </button>
             ))}
           </div>
-        )}
-
-        {/* Input Area */}
-        <div className="p-3 bg-white border-t border-gray-100 shrink-0">
-          <form onSubmit={handleSendMessage} className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setShowEmotes(!showEmotes)}
-              className="bg-gray-100 hover:bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center transition-colors shrink-0"
-            >
-              😊
-            </button>
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={chatType === 'proximity' ? 'Mensaje a jugadores cercanos...' : 'Escribe un mensaje...'}
-              maxLength={500}
-              className="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all outline-none"
-              enterKeyHint="send"
-            />
-            <button
-              type="submit"
-              disabled={!inputText.trim()}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shrink-0"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </form>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 

@@ -191,9 +191,40 @@ const initialDigging: DiggingState = {
   stage: 'idle',
 };
 
+// Starter tools - given to new players so they can immediately enjoy activities
+const STARTER_TOOLS: Tool[] = [
+  {
+    type: 'fishing_rod',
+    name: 'Flimsy Fishing Rod',
+    nameEs: 'Caña de Pescar Básica',
+    icon: '🎣',
+    durability: 20,
+    maxDurability: 20,
+    tier: 'flimsy',
+  },
+  {
+    type: 'net',
+    name: 'Flimsy Net',
+    nameEs: 'Red Básica',
+    icon: '🥅',
+    durability: 20,
+    maxDurability: 20,
+    tier: 'flimsy',
+  },
+  {
+    type: 'shovel',
+    name: 'Flimsy Shovel',
+    nameEs: 'Pala Básica',
+    icon: '⛏️',
+    durability: 20,
+    maxDurability: 20,
+    tier: 'flimsy',
+  },
+];
+
 const initialTools: PlayerTools = {
   equipped: null,
-  inventory: [],
+  inventory: [...STARTER_TOOLS],
 };
 
 const initialInventory: PlayerInventory = {

@@ -40,6 +40,8 @@ import {
 import { ActivitySpawner } from './activities/ActivitySpawner';
 import { OptimizedBoundary } from './world/OptimizedBoundary';
 import { OptimizedNPCs } from './world/OptimizedNPCs';
+import { InteractiveBillboard } from './world/Billboard';
+import { FishingPond } from './world/FishingPond';
 import { QUALITY_PRESETS } from '../utils/performance';
 
 // --- Configuration ---
@@ -540,145 +542,145 @@ const RoadMarkings: React.FC = React.memo(() => {
 // Colina con capas de color y detalles decorativos
 const Hill: React.FC<{ position: [number, number, number]; scale?: number; variant?: 'green' | 'autumn' | 'snowy' }> =
     ({ position, scale = 1, variant = 'green' }) => {
-    const colors = {
-        green: { base: '#22c55e', mid: '#4ade80', peak: '#86efac', accent: '#15803d' },
-        autumn: { base: '#ea580c', mid: '#f97316', peak: '#fdba74', accent: '#c2410c' },
-        snowy: { base: '#94a3b8', mid: '#cbd5e1', peak: '#f1f5f9', accent: '#64748b' },
-    };
-    const c = colors[variant];
+        const colors = {
+            green: { base: '#22c55e', mid: '#4ade80', peak: '#86efac', accent: '#15803d' },
+            autumn: { base: '#ea580c', mid: '#f97316', peak: '#fdba74', accent: '#c2410c' },
+            snowy: { base: '#94a3b8', mid: '#cbd5e1', peak: '#f1f5f9', accent: '#64748b' },
+        };
+        const c = colors[variant];
 
-    return (
-        <group position={position}>
-            <mesh position={[0, 0, 0]} receiveShadow>
-                <sphereGeometry args={[10 * scale, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshStandardMaterial color={c.base} flatShading />
-            </mesh>
-            <mesh position={[0, 2 * scale, 0]}>
-                <sphereGeometry args={[7 * scale, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshStandardMaterial color={c.mid} flatShading />
-            </mesh>
-            <mesh position={[0, 5 * scale, 0]}>
-                <sphereGeometry args={[4 * scale, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshStandardMaterial color={c.peak} flatShading />
-            </mesh>
-            <mesh position={[3 * scale, 1 * scale, 2 * scale]}>
-                <dodecahedronGeometry args={[1.5 * scale, 0]} />
-                <meshStandardMaterial color={c.accent} flatShading />
-            </mesh>
-            <mesh position={[-4 * scale, 0.5 * scale, -1 * scale]}>
-                <dodecahedronGeometry args={[1 * scale, 0]} />
-                <meshStandardMaterial color={c.accent} flatShading />
-            </mesh>
-        </group>
-    );
-};
+        return (
+            <group position={position}>
+                <mesh position={[0, 0, 0]} receiveShadow>
+                    <sphereGeometry args={[10 * scale, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                    <meshStandardMaterial color={c.base} flatShading />
+                </mesh>
+                <mesh position={[0, 2 * scale, 0]}>
+                    <sphereGeometry args={[7 * scale, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                    <meshStandardMaterial color={c.mid} flatShading />
+                </mesh>
+                <mesh position={[0, 5 * scale, 0]}>
+                    <sphereGeometry args={[4 * scale, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                    <meshStandardMaterial color={c.peak} flatShading />
+                </mesh>
+                <mesh position={[3 * scale, 1 * scale, 2 * scale]}>
+                    <dodecahedronGeometry args={[1.5 * scale, 0]} />
+                    <meshStandardMaterial color={c.accent} flatShading />
+                </mesh>
+                <mesh position={[-4 * scale, 0.5 * scale, -1 * scale]}>
+                    <dodecahedronGeometry args={[1 * scale, 0]} />
+                    <meshStandardMaterial color={c.accent} flatShading />
+                </mesh>
+            </group>
+        );
+    };
 
 // Árbol frondoso con variantes de estilo
 const BorderTree: React.FC<{ position: [number, number, number]; scale?: number; variant?: 'oak' | 'pine' | 'cherry' | 'maple' }> =
     ({ position, scale = 1, variant = 'oak' }) => {
-    const configs = {
-        oak: { trunk: '#78350f', foliage: ['#16a34a', '#22c55e', '#4ade80'], shape: 'round' },
-        pine: { trunk: '#451a03', foliage: ['#064e3b', '#047857', '#059669'], shape: 'cone' },
-        cherry: { trunk: '#7c2d12', foliage: ['#ec4899', '#f472b6', '#f9a8d4'], shape: 'round' },
-        maple: { trunk: '#78350f', foliage: ['#dc2626', '#f97316', '#fbbf24'], shape: 'round' },
-    };
-    const cfg = configs[variant];
+        const configs = {
+            oak: { trunk: '#78350f', foliage: ['#16a34a', '#22c55e', '#4ade80'], shape: 'round' },
+            pine: { trunk: '#451a03', foliage: ['#064e3b', '#047857', '#059669'], shape: 'cone' },
+            cherry: { trunk: '#7c2d12', foliage: ['#ec4899', '#f472b6', '#f9a8d4'], shape: 'round' },
+            maple: { trunk: '#78350f', foliage: ['#dc2626', '#f97316', '#fbbf24'], shape: 'round' },
+        };
+        const cfg = configs[variant];
 
-    if (cfg.shape === 'cone') {
+        if (cfg.shape === 'cone') {
+            return (
+                <group position={position} scale={scale}>
+                    <mesh position={[0, 1.2, 0]} castShadow>
+                        <cylinderGeometry args={[0.25, 0.4, 2.4, 8]} />
+                        <meshStandardMaterial color={cfg.trunk} />
+                    </mesh>
+                    <mesh position={[0, 2.5, 0]} castShadow>
+                        <coneGeometry args={[2.2, 2.5, 8]} />
+                        <meshStandardMaterial color={cfg.foliage[0]} flatShading />
+                    </mesh>
+                    <mesh position={[0, 4, 0]} castShadow>
+                        <coneGeometry args={[1.6, 2, 8]} />
+                        <meshStandardMaterial color={cfg.foliage[1]} flatShading />
+                    </mesh>
+                    <mesh position={[0, 5.2, 0]} castShadow>
+                        <coneGeometry args={[1, 1.5, 8]} />
+                        <meshStandardMaterial color={cfg.foliage[2]} flatShading />
+                    </mesh>
+                </group>
+            );
+        }
+
         return (
             <group position={position} scale={scale}>
-                <mesh position={[0, 1.2, 0]} castShadow>
-                    <cylinderGeometry args={[0.25, 0.4, 2.4, 8]} />
+                <mesh position={[0, 1.8, 0]} castShadow>
+                    <cylinderGeometry args={[0.3, 0.5, 3.6, 8]} />
                     <meshStandardMaterial color={cfg.trunk} />
                 </mesh>
-                <mesh position={[0, 2.5, 0]} castShadow>
-                    <coneGeometry args={[2.2, 2.5, 8]} />
+                <mesh position={[0.3, 0.15, 0.3]} rotation={[0, 0, 0.3]} castShadow>
+                    <cylinderGeometry args={[0.1, 0.15, 0.6, 6]} />
+                    <meshStandardMaterial color={cfg.trunk} />
+                </mesh>
+                <mesh position={[-0.3, 0.15, -0.2]} rotation={[0, 0, -0.3]} castShadow>
+                    <cylinderGeometry args={[0.1, 0.15, 0.6, 6]} />
+                    <meshStandardMaterial color={cfg.trunk} />
+                </mesh>
+                <mesh position={[0, 4.5, 0]} castShadow>
+                    <sphereGeometry args={[2.5, 10, 8]} />
                     <meshStandardMaterial color={cfg.foliage[0]} flatShading />
                 </mesh>
-                <mesh position={[0, 4, 0]} castShadow>
-                    <coneGeometry args={[1.6, 2, 8]} />
+                <mesh position={[1.2, 4, 0.8]} castShadow>
+                    <sphereGeometry args={[1.5, 8, 6]} />
                     <meshStandardMaterial color={cfg.foliage[1]} flatShading />
                 </mesh>
-                <mesh position={[0, 5.2, 0]} castShadow>
-                    <coneGeometry args={[1, 1.5, 8]} />
+                <mesh position={[-1, 4.2, -0.6]} castShadow>
+                    <sphereGeometry args={[1.3, 8, 6]} />
                     <meshStandardMaterial color={cfg.foliage[2]} flatShading />
+                </mesh>
+                <mesh position={[0.5, 5.2, -0.5]} castShadow>
+                    <sphereGeometry args={[1.1, 6, 5]} />
+                    <meshStandardMaterial color={cfg.foliage[1]} flatShading />
+                </mesh>
+                <mesh position={[-0.8, 3.8, 1]} castShadow>
+                    <sphereGeometry args={[1.2, 6, 5]} />
+                    <meshStandardMaterial color={cfg.foliage[0]} flatShading />
                 </mesh>
             </group>
         );
-    }
-
-    return (
-        <group position={position} scale={scale}>
-            <mesh position={[0, 1.8, 0]} castShadow>
-                <cylinderGeometry args={[0.3, 0.5, 3.6, 8]} />
-                <meshStandardMaterial color={cfg.trunk} />
-            </mesh>
-            <mesh position={[0.3, 0.15, 0.3]} rotation={[0, 0, 0.3]} castShadow>
-                <cylinderGeometry args={[0.1, 0.15, 0.6, 6]} />
-                <meshStandardMaterial color={cfg.trunk} />
-            </mesh>
-            <mesh position={[-0.3, 0.15, -0.2]} rotation={[0, 0, -0.3]} castShadow>
-                <cylinderGeometry args={[0.1, 0.15, 0.6, 6]} />
-                <meshStandardMaterial color={cfg.trunk} />
-            </mesh>
-            <mesh position={[0, 4.5, 0]} castShadow>
-                <sphereGeometry args={[2.5, 10, 8]} />
-                <meshStandardMaterial color={cfg.foliage[0]} flatShading />
-            </mesh>
-            <mesh position={[1.2, 4, 0.8]} castShadow>
-                <sphereGeometry args={[1.5, 8, 6]} />
-                <meshStandardMaterial color={cfg.foliage[1]} flatShading />
-            </mesh>
-            <mesh position={[-1, 4.2, -0.6]} castShadow>
-                <sphereGeometry args={[1.3, 8, 6]} />
-                <meshStandardMaterial color={cfg.foliage[2]} flatShading />
-            </mesh>
-            <mesh position={[0.5, 5.2, -0.5]} castShadow>
-                <sphereGeometry args={[1.1, 6, 5]} />
-                <meshStandardMaterial color={cfg.foliage[1]} flatShading />
-            </mesh>
-            <mesh position={[-0.8, 3.8, 1]} castShadow>
-                <sphereGeometry args={[1.2, 6, 5]} />
-                <meshStandardMaterial color={cfg.foliage[0]} flatShading />
-            </mesh>
-        </group>
-    );
-};
+    };
 
 // Cerca estilo pueblo pintoresco
 const PictureFence: React.FC<{ position: [number, number, number]; rotation?: [number, number, number]; length?: number }> =
     ({ position, rotation = [0, 0, 0], length = 10 }) => {
-    const posts = Math.floor(length / 2.5);
+        const posts = Math.floor(length / 2.5);
 
-    return (
-        <group position={position} rotation={rotation}>
-            {Array.from({ length: posts + 1 }).map((_, i) => (
-                <group key={`post-${i}`} position={[i * 2.5 - length / 2, 0, 0]}>
-                    <mesh position={[0, 0.7, 0]} castShadow>
-                        <boxGeometry args={[0.18, 1.4, 0.18]} />
-                        <meshStandardMaterial color="#fef3c7" />
-                    </mesh>
-                    <mesh position={[0, 1.5, 0]} castShadow>
-                        <sphereGeometry args={[0.14, 8, 6]} />
-                        <meshStandardMaterial color="#fde68a" />
-                    </mesh>
-                </group>
-            ))}
-            <mesh position={[0, 1.1, 0]} castShadow>
-                <boxGeometry args={[length, 0.12, 0.08]} />
-                <meshStandardMaterial color="#fef9c3" />
-            </mesh>
-            <mesh position={[0, 0.6, 0]} castShadow>
-                <boxGeometry args={[length, 0.12, 0.08]} />
-                <meshStandardMaterial color="#fef9c3" />
-            </mesh>
-            <mesh position={[0, 0.25, 0]} castShadow>
-                <boxGeometry args={[length, 0.1, 0.06]} />
-                <meshStandardMaterial color="#fde68a" />
-            </mesh>
-        </group>
-    );
-};
+        return (
+            <group position={position} rotation={rotation}>
+                {Array.from({ length: posts + 1 }).map((_, i) => (
+                    <group key={`post-${i}`} position={[i * 2.5 - length / 2, 0, 0]}>
+                        <mesh position={[0, 0.7, 0]} castShadow>
+                            <boxGeometry args={[0.18, 1.4, 0.18]} />
+                            <meshStandardMaterial color="#fef3c7" />
+                        </mesh>
+                        <mesh position={[0, 1.5, 0]} castShadow>
+                            <sphereGeometry args={[0.14, 8, 6]} />
+                            <meshStandardMaterial color="#fde68a" />
+                        </mesh>
+                    </group>
+                ))}
+                <mesh position={[0, 1.1, 0]} castShadow>
+                    <boxGeometry args={[length, 0.12, 0.08]} />
+                    <meshStandardMaterial color="#fef9c3" />
+                </mesh>
+                <mesh position={[0, 0.6, 0]} castShadow>
+                    <boxGeometry args={[length, 0.12, 0.08]} />
+                    <meshStandardMaterial color="#fef9c3" />
+                </mesh>
+                <mesh position={[0, 0.25, 0]} castShadow>
+                    <boxGeometry args={[length, 0.1, 0.06]} />
+                    <meshStandardMaterial color="#fde68a" />
+                </mesh>
+            </group>
+        );
+    };
 
 // Flor decorativa para el borde
 const BorderFlower: React.FC<{ position: [number, number, number]; color?: string }> = ({ position, color = '#ec4899' }) => {
@@ -804,33 +806,33 @@ const WaterBorder: React.FC<{ size: number }> = ({ size }) => {
 // Puente decorativo
 const DecorativeBridge: React.FC<{ position: [number, number, number]; rotation?: [number, number, number] }> =
     ({ position, rotation = [0, 0, 0] }) => {
-    return (
-        <group position={position} rotation={rotation}>
-            <mesh position={[0, 0.8, 0]} castShadow>
-                <torusGeometry args={[2, 0.3, 8, 16, Math.PI]} />
-                <meshStandardMaterial color="#92400e" />
-            </mesh>
-            <mesh position={[0, 1.5, 0]} castShadow>
-                <boxGeometry args={[4.5, 0.15, 1.2]} />
-                <meshStandardMaterial color="#a16207" />
-            </mesh>
-            {[-0.5, 0.5].map((z, i) => (
-                <group key={`rail-${i}`}>
-                    {[-1.8, -0.9, 0, 0.9, 1.8].map((x, j) => (
-                        <mesh key={`post-${j}`} position={[x, 1.9, z]} castShadow>
-                            <boxGeometry args={[0.1, 0.8, 0.1]} />
-                            <meshStandardMaterial color="#ca8a04" />
+        return (
+            <group position={position} rotation={rotation}>
+                <mesh position={[0, 0.8, 0]} castShadow>
+                    <torusGeometry args={[2, 0.3, 8, 16, Math.PI]} />
+                    <meshStandardMaterial color="#92400e" />
+                </mesh>
+                <mesh position={[0, 1.5, 0]} castShadow>
+                    <boxGeometry args={[4.5, 0.15, 1.2]} />
+                    <meshStandardMaterial color="#a16207" />
+                </mesh>
+                {[-0.5, 0.5].map((z, i) => (
+                    <group key={`rail-${i}`}>
+                        {[-1.8, -0.9, 0, 0.9, 1.8].map((x, j) => (
+                            <mesh key={`post-${j}`} position={[x, 1.9, z]} castShadow>
+                                <boxGeometry args={[0.1, 0.8, 0.1]} />
+                                <meshStandardMaterial color="#ca8a04" />
+                            </mesh>
+                        ))}
+                        <mesh position={[0, 2.2, z]} castShadow>
+                            <boxGeometry args={[4.2, 0.08, 0.08]} />
+                            <meshStandardMaterial color="#eab308" />
                         </mesh>
-                    ))}
-                    <mesh position={[0, 2.2, z]} castShadow>
-                        <boxGeometry args={[4.2, 0.08, 0.08]} />
-                        <meshStandardMaterial color="#eab308" />
-                    </mesh>
-                </group>
-            ))}
-        </group>
-    );
-};
+                    </group>
+                ))}
+            </group>
+        );
+    };
 
 // Cielo con nubes
 const SkyBackground: React.FC = () => {
@@ -1063,6 +1065,8 @@ export const World: React.FC = () => {
     const blocks = [];
     const range = Math.floor(GRID_SIZE / 2);
     const setTrafficState = useGameStore(s => s.setTrafficState);
+    const isDriving = useGameStore(s => s.isDriving);
+    const vehicleType = useGameStore(s => s.vehicleType);
     const qualityLevel = useGameStore(s => s.qualityLevel);
     const quality = QUALITY_PRESETS[qualityLevel];
     const groundSize = MAP_SIZE + 10; // Aligns with BoundaryWalls to avoid visible ground beyond collision
@@ -1231,7 +1235,7 @@ export const World: React.FC = () => {
             <PhoneBoothRetro position={[CELL_SIZE / 2 + 5, 0.2, CELL_SIZE / 2 + 5]} rotation={[0, -Math.PI / 4, 0]} />
 
             {npcCars}
-            <Skateboard />
+            {isDriving && vehicleType === 'skateboard' && <Skateboard />}
 
             {/* Skateboards scattered around the city - reduced for performance */}
             <WorldSkateboard position={[5, 0.1, 8]} />
@@ -1242,6 +1246,19 @@ export const World: React.FC = () => {
                 gridSize={GRID_SIZE}
                 cellSize={CELL_SIZE}
                 blockSize={BLOCK_SIZE}
+            />
+
+            {/* Interactive Billboard - Community Screen */}
+            <InteractiveBillboard
+                position={[CELL_SIZE * 1.2, 0, -CELL_SIZE * 0.8]}
+                rotation={[0, Math.PI * 0.8, 0]}
+                size={[10, 5.6]}
+            />
+
+            {/* Fishing Pond - Single dedicated fishing area */}
+            <FishingPond
+                position={[-CELL_SIZE * 1.1, 0, CELL_SIZE * 0.9]}
+                size={[7, 5]}
             />
 
             {/* Optimized boundary with quality-aware decorations */}

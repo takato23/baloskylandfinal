@@ -5,11 +5,11 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useGameStore } from '../../store';
-import { FishingSpot } from './FishingSpot';
 import { BugSpawn } from './BugSpawn';
 import { FossilSpot } from './FossilSpot';
 import { getActiveBugs } from '../../data/bugs';
 import type { Bug } from '../../types/collectibles';
+// Note: FishingSpot is no longer used here - fishing is handled by dedicated FishingPond in World.tsx
 
 interface ActivitySpawnerProps {
   // World configuration
@@ -28,9 +28,7 @@ const SPAWN_CONFIG = {
     maxTotal: 4,
     refreshDaily: true,
   },
-  fishing: {
-    perFountain: 2, // Fishing spots per water feature
-  },
+  // Note: Fishing is now handled by dedicated FishingPond component in World.tsx
 };
 
 export function ActivitySpawner({
@@ -58,26 +56,7 @@ export function ActivitySpawner({
     [currentHour, currentMonth, weatherStr]
   );
 
-  // Generate fishing spots (static - near fountain in center park)
-  const fishingSpots = useMemo(() => {
-    const spots: Array<{ id: string; position: [number, number, number] }> = [];
-
-    // Center park fountain location (0, 0)
-    const fountainX = 0;
-    const fountainZ = 0;
-
-    // Place fishing spots around the fountain
-    spots.push({
-      id: 'fishing_north',
-      position: [fountainX, 0.2, fountainZ - 3.5]
-    });
-    spots.push({
-      id: 'fishing_south',
-      position: [fountainX, 0.2, fountainZ + 3.5]
-    });
-
-    return spots;
-  }, []);
+  // Note: Fishing spots are now handled by the dedicated FishingPond component in World.tsx
 
   // Generate bug spawns
   useEffect(() => {
@@ -224,15 +203,7 @@ export function ActivitySpawner({
 
   return (
     <group name="activity-spawner">
-      {/* Fishing Spots */}
-      {fishingSpots.map((spot) => (
-        <FishingSpot
-          key={spot.id}
-          position={spot.position}
-          size={[2.5, 2.5]}
-          location="pond"
-        />
-      ))}
+      {/* Note: Fishing is now handled by dedicated FishingPond component in World.tsx */}
 
       {/* Bug Spawns */}
       {bugSpawns.map((spawn) => (

@@ -783,8 +783,8 @@ const SpeedIndicator: React.FC<SpeedIndicatorProps> = memo(({ speed, maxSpeed = 
           background: speedPercent > 70
             ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
             : speedPercent > 40
-            ? 'linear-gradient(90deg, #22c55e, #f59e0b)'
-            : 'linear-gradient(90deg, #3b82f6, #22c55e)',
+              ? 'linear-gradient(90deg, #22c55e, #f59e0b)'
+              : 'linear-gradient(90deg, #3b82f6, #22c55e)',
         }}
       />
 
@@ -802,8 +802,8 @@ const SpeedIndicator: React.FC<SpeedIndicatorProps> = memo(({ speed, maxSpeed = 
                 background: speedPercent > 70
                   ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
                   : speedPercent > 40
-                  ? 'linear-gradient(90deg, #22c55e, #f59e0b)'
-                  : 'linear-gradient(90deg, #3b82f6, #22c55e)',
+                    ? 'linear-gradient(90deg, #22c55e, #f59e0b)'
+                    : 'linear-gradient(90deg, #3b82f6, #22c55e)',
                 boxShadow: '0 0 10px currentColor',
               }}
             />
@@ -890,12 +890,6 @@ export const MobileControls: React.FC = () => {
         </div>
       )}
 
-      {/* Speed Indicator */}
-      {isOnSkateboard && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
-          <SpeedIndicator speed={skateboardSpeed} />
-        </div>
-      )}
 
       {/* Virtual Joystick */}
       <div className={`absolute ${joystickPosition} pointer-events-auto`}>
@@ -904,14 +898,6 @@ export const MobileControls: React.FC = () => {
           size={joystickSize}
           stickSize={stickSize}
         />
-
-        {!isDriving && (
-          <div className="mt-3 text-center">
-            <span className="text-white/60 text-[10px] font-bold bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
-              Empujá fuerte = Correr
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Action Buttons */}
@@ -963,13 +949,16 @@ export const MobileControls: React.FC = () => {
         ) : (
           // Walking Controls
           <div className={`flex ${isLandscape ? 'flex-row items-end' : 'flex-col items-end'} gap-4`}>
-            <div className={`flex ${isLandscape ? 'flex-col' : 'flex-row'} gap-3`}>
+            {/* Skateboard button above walk/run toggle */}
+            <div className="flex flex-col gap-2 items-center">
               <GameButton
                 size="sm"
                 variant="warning"
-                icon={Icons.horn}
-                onPress={handleHornPress}
-                onRelease={handleHornRelease}
+                icon={Icons.skateboard}
+                label="Patinar"
+                onPress={handleStartSkateboard}
+                onRelease={() => {}}
+                hapticIntensity={HAPTIC_MEDIUM}
               />
               <ToggleGameButton
                 size="md"
@@ -1011,17 +1000,19 @@ export const MobileControls: React.FC = () => {
         )}
       </div>
 
-      {/* Quick Action Bar */}
-      <div className="absolute top-4 right-4 pointer-events-auto">
-        {!isDriving && (
-          <PillButton
-            icon={Icons.skateboard}
-            label="Patinar"
+
+      {/* Horn button - positioned separately at top-left area, away from joystick */}
+      {!isDriving && (
+        <div className="absolute top-4 left-4 pointer-events-auto">
+          <GameButton
+            size="sm"
             variant="warning"
-            onPress={handleStartSkateboard}
+            icon={Icons.horn}
+            onPress={handleHornPress}
+            onRelease={handleHornRelease}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Context hint */}
       {hasInteraction && !isDriving && (
@@ -1036,18 +1027,6 @@ export const MobileControls: React.FC = () => {
         </div>
       )}
 
-      {/* Landscape tip */}
-      {!isLandscape && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 pointer-events-none">
-          <div className="bg-black/50 backdrop-blur-sm text-white/70 px-4 py-1.5 rounded-full text-[10px] font-medium flex items-center gap-2 border border-white/10">
-            <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
-              <rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" strokeWidth="2" />
-              <path d="M12 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            Girá para mejor vista
-          </div>
-        </div>
-      )}
     </div>
   );
 };

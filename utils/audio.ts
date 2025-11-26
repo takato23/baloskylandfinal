@@ -15,10 +15,10 @@ const setupVisibilityHandler = () => {
 
     if (document.hidden) {
       // Suspend audio when app goes to background
-      audioCtx.suspend().catch(() => {});
+      audioCtx.suspend().catch(() => { });
     } else {
       // Resume audio when app comes back
-      audioCtx.resume().catch(() => {});
+      audioCtx.resume().catch(() => { });
     }
   });
 };
@@ -63,7 +63,14 @@ export const updateListener = (pos: [number, number, number], dir: [number, numb
 };
 
 // NPC Car Engine Sound Generator (lighter, distant car sounds)
-export const createCarEngineSound = (initialPosition?: [number, number, number]) => {
+export interface CarEngineSound {
+  setPosition: (pos: [number, number, number]) => void;
+  setSpeed: (speed: number) => void;
+  setVolume: (vol: number) => void;
+  stop: () => void;
+}
+
+export const createCarEngineSound = (initialPosition?: [number, number, number]): CarEngineSound => {
   const ctx = getContext();
   const gainNode = ctx.createGain();
 
@@ -850,7 +857,7 @@ export const playSound = (type: 'coin' | 'jump' | 'step' | 'gem' | 'rustle' | 'b
  */
 export const cleanupAudio = () => {
   if (audioCtx) {
-    audioCtx.close().catch(() => {});
+    audioCtx.close().catch(() => { });
     audioCtx = null;
   }
 };

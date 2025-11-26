@@ -1003,13 +1003,12 @@ export const ActivityHUD: React.FC<ActivityHUDProps> = memo(({ isMobile = false,
         <DiggingIndicator />
       </div>
 
-      {/* Top-right: Quick stats + Critterpedia */}
-      <div className="fixed top-4 right-4 z-30 flex flex-col gap-2 items-end pointer-events-auto">
-        <QuickStatsBar />
-        {onOpenCritterpedia && (
+      {/* Right side: Critterpedia only (QuickStatsBar removed to not block minimap) */}
+      {onOpenCritterpedia && (
+        <div className="fixed top-32 right-4 z-30 pointer-events-auto">
           <MiniCritterpediaButton onClick={onOpenCritterpedia} />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Bottom-right: Notifications */}
       <div className="fixed bottom-24 right-4 z-30 flex flex-col gap-3 items-end pointer-events-auto max-w-[360px]">

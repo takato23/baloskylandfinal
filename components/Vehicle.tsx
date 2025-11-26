@@ -230,17 +230,8 @@ export const Skateboard: React.FC = () => {
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.1);
 
-    // Hide when not active
-    if (!isActive) {
-      if (rigidBody.current) {
-        const pos = rigidBody.current.translation();
-        if (pos.y > -50) {
-          rigidBody.current.setTranslation({ x: 0, y: -100, z: 0 }, true);
-          rigidBody.current.sleep();
-        }
-      }
-      return;
-    }
+    // Hide when not active - REMOVED: Component is now conditionally rendered
+    // if (!isActive) { ... }
 
     if (!rigidBody.current) return;
 
@@ -405,21 +396,19 @@ export const Skateboard: React.FC = () => {
           <SkateboardModel wheelSpeed={speed} />
 
           {/* Character on skateboard */}
-          {isActive && (
-            <group position={[0, 0.1, 0.05]} rotation={[0, Math.PI / 2, 0]}>
-              <CharacterModel
-                isMoving={speed > 1}
-                run={false}
-                isSitting={false}
-                isGrounded={isGrounded}
-                skin={character.skin}
-                shirt={character.shirt}
-                pants={character.pants}
-                type={character.type}
-                accessory={character.accessory}
-              />
-            </group>
-          )}
+          <group position={[0, 0.1, 0.05]} rotation={[0, Math.PI / 2, 0]}>
+            <CharacterModel
+              isMoving={speed > 1}
+              run={false}
+              isSitting={false}
+              isGrounded={isGrounded}
+              skin={character.skin}
+              shirt={character.shirt}
+              pants={character.pants}
+              type={character.type}
+              accessory={character.accessory}
+            />
+          </group>
         </group>
       </RigidBody>
     </>
@@ -640,7 +629,7 @@ export const NPCCar: React.FC<NPCCarProps> = ({ laneAxis, lanePos, startOffset, 
   const [isBraking, setIsBraking] = useState(false);
 
   // Engine sound - DISABLED for quieter experience
-  const engineSoundRef = useRef<ReturnType<typeof createCarEngineSound> | null>(null);
+  const engineSoundRef = useRef<import('../utils/audio').CarEngineSound | null>(null);
   const ENABLE_CAR_SOUNDS = false;
 
   // Honking state

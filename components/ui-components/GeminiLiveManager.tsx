@@ -167,14 +167,14 @@ export const GeminiLiveManager: React.FC = () => {
     // Disconnect processor
     try {
       processorRef.current?.disconnect();
-    } catch {}
+    } catch { }
     processorRef.current = null;
 
     // Close audio contexts
     try {
       audioContextRef.current?.close();
       outputContextRef.current?.close();
-    } catch {}
+    } catch { }
     audioContextRef.current = null;
     outputContextRef.current = null;
 
@@ -185,7 +185,7 @@ export const GeminiLiveManager: React.FC = () => {
     // Close session
     try {
       sessionRef.current?.close();
-    } catch {}
+    } catch { }
     sessionRef.current = null;
   }, []);
 
@@ -329,13 +329,7 @@ export const GeminiLiveManager: React.FC = () => {
           callbacks: {
             onopen: () => {
               console.log('[GeminiLive] Connected');
-              if (isCleaningUpRef.current) {
-                session.close();
-                return;
-              }
-              sessionRef.current = session;
               setLiveConnectionState('connected');
-              setupMicrophone(session);
             },
             onmessage: (message: LiveServerMessage) => {
               handleMessage(message);
@@ -365,6 +359,14 @@ export const GeminiLiveManager: React.FC = () => {
             outputAudioTranscription: {},
           },
         });
+
+        if (isCleaningUpRef.current) {
+          session.close();
+          return;
+        }
+
+        sessionRef.current = session;
+        setupMicrophone(session);
       } catch (err: any) {
         console.error('[GeminiLive] Connection error:', err.message || err);
         if (!isCleaningUpRef.current) {
